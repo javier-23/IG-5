@@ -328,10 +328,10 @@ Cubo::Cubo()
 Tetraedro::Tetraedro() : MallaInd(" Tetraedro 4 vértices "){
    vertices =
       {
-         { -1.0, -1.0, -1.0 }, // 0
-         { -1.0, -1.0, +1.0 }, // 1
-         { -1.0, +1.0, -1.0 }, // 2
-         { +1.0, -1.0, -1.0 } // 3
+         { -0.5, -0.5, +0.2 }, // 0
+         { +0.5, -0.5, +0.5 }, // 1
+         { -0.0, -0.5, -0.5 }, // 2
+         { -0.3, +1.0, -0.0 } // 3
       };
 
    triangulos = 
@@ -447,6 +447,34 @@ CasaX::CasaX(): MallaInd( " CasaX " ){
       {0, 0.75, 0.25},
       {1.0, 0.75, 0.25}
    };
+}
+
+MallaTriangulo::MallaTriangulo(): MallaInd( " MallaTriangulo " ){
+   vertices =
+      {  {-0.5, 0, 0 },
+         {0.5, 0, 0 },  
+         {0, sqrt(2), 0 }
+      } ;
+
+   triangulos =
+      {  
+         {0,1,2}
+      };
+}
+
+MallaCuadrado::MallaCuadrado(): MallaInd( " MallaCuadrado " ){
+
+   vertices =
+      {  {-1.0, -1.0, 0}, 
+         {-1.0, +1.0, 0},
+         {+1.0, -1.0, 0},
+         {+1.0, +1.0, 0}
+      };
+
+   triangulos =
+      {  
+         {0,1,2}, {1,2,3}
+      };
 }
 
 MallaPiramideL::MallaPiramideL(): MallaInd( " MallaPiramideL " ){
