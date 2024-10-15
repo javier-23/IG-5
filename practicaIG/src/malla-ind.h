@@ -163,7 +163,21 @@ class MallaPiramideL : public MallaInd{
 // ---------------------------------------------------------------------
 
 
+//Ejercicios adicionales P2:
+class PiramideEstrellaZ : public MallaInd{
+   public:
+      PiramideEstrellaZ(unsigned n);
+};
 
+class RejillaY : public MallaInd{
+   public:
+      RejillaY(unsigned n, unsigned m);
+};
+
+class MallaTorre : public MallaInd{
+   public:
+      MallaTorre(unsigned n);
+};
 
 // ---------------------------------------------------------------------
 

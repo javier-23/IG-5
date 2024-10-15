@@ -55,7 +55,29 @@ void MallaRevol::inicializar
    //
    // ............................... 
 
+// Tabla de vértices
+   
+   vertices.clear();
 
+   //Tabla de vértices y de normales + las coordenads de textura
+   for (unsigned int i=0; i<num_copias; ++i){
+      float angulo = (2*M_PI*i)/(num_copias-1);
+      for (float j=0; j<perfil.size(); ++j){
+         float radio = perfil[j].x;
+         vertices.push_back(glm::vec3{radio *cos(angulo), perfil[j].y, -1*radio *sin(angulo)});
+      }
+   }
+
+   unsigned int k;
+   triangulos.clear(); //* 
+   //Tabla de triángulos
+   for(unsigned int i=0 ; i<num_copias-1; i++){
+      for(unsigned int j=0 ; j<perfil.size()-1; j++){
+         k=i*perfil.size() + j;
+         triangulos.push_back({k, k + perfil.size(), k + perfil.size() + 1});
+         triangulos.push_back({k, k + perfil.size() + 1, k + 1});
+      }
+   }
 
 
 
@@ -74,10 +96,53 @@ MallaRevolPLY::MallaRevolPLY
    // COMPLETAR: práctica 2: crear la malla de revolución
    // Leer los vértice del perfil desde un PLY, después llamar a 'inicializar'
    // ...........................
-
+   std::vector<glm::vec3> aux;
+   LeerVerticesPLY(nombre_arch, aux);
+   inicializar(aux, nperfiles);
 
 }
 
+
+Cilindro::Cilindro(const int num_verts_per, const unsigned nperfiles){
+   //ponerNombre( std::string(" Cilindro "));
+   vector<glm::vec3> vertices_perfil;
+   double distancia = +1.0 / num_verts_per;
+   
+   vertices_perfil.push_back({+1.0, 0.0, 0.0});
+   for(unsigned int i=1; i<=num_verts_per; i++){
+      vertices_perfil.push_back({+1.0, vertices_perfil[i-1][Y] + distancia, 0.0});
+   }
+   inicializar(vertices_perfil,nperfiles);
+}
+
+
+Cono::Cono(const int num_verts_per, const unsigned nperfiles){
+   //ponerNombre(" Cono ");
+   vector<glm::vec3> vertices_perfil;
+   double distancia = +1.0 / num_verts_per;
+
+   vertices_perfil.push_back({0,+1.0,0}); //Primer vértice
+
+   for(unsigned int i=1; i<=num_verts_per;i++){
+      vertices_perfil.push_back({vertices_perfil[i-1][X] + distancia, vertices_perfil[i-1][Y] - distancia, 0});
+   }
+
+   inicializar(vertices_perfil,nperfiles);
+}
+
+
+Esfera::Esfera(const int num_verts_per, const unsigned nperfiles){
+   //ponerNombre(" Esfera ");
+   vector<glm::vec3> vertices_perfil;
+   float distancia = M_PI/num_verts_per;
+
+   for(unsigned int i=0; i<=num_verts_per;i++){
+      vertices_perfil.push_back({ cos(float(-M_PI/2) + i*distancia), sin(float(-M_PI/2)+ i*distancia), 0});
+   }
+
+   inicializar(vertices_perfil,nperfiles);
+
+}
 
 
 

@@ -283,7 +283,7 @@ MallaPLY::MallaPLY( const std::string & nombre_arch )
 
    // COMPLETAR: práctica 2: leer archivo PLY e inicializar la malla
    // ..........................
-
+   LeerPLY(nombre_arch, vertices, triangulos);
 
    // COMPLETAR: práctica 4: invocar  a 'calcularNormales' para el cálculo de normales
    // .................
@@ -493,6 +493,107 @@ MallaPiramideL::MallaPiramideL(): MallaInd( " MallaPiramideL " ){
          {0,1,6}, {1,2,6}, {2,3,6}, {3,4,6}, {4,5,6}, {0,5,6},
          {0,1,5}, {5,4,3}, {3,2,1} //Base
       };
+}
+
+// -----------------------------------------------------------------------------------------------
+
+//Ejercicios adicionales P2:
+
+PiramideEstrellaZ::PiramideEstrellaZ(unsigned n): MallaInd( " Piramide Estrella Z" ){
+
+   //Vértices:
+   vertices.push_back({0.5, 0.5 , 0}); // base 
+   
+   for(unsigned int i = 0; i < 2*n; i += 2) {   // Creamos todos los vértices de la estrella de 2 en 2
+      vertices.push_back( {float(cos(i*M_PI/n)/2 + 0.5), float(sin(i*M_PI/n)/2 + 0.5), 0} );
+      vertices.push_back( {float(cos((i+1)*M_PI/n)/4 + 0.5), float(sin((i+1)*M_PI/n)/4 + 0.5), 0} );
+   }
+
+   vertices.push_back({0.5, 0.5 , 0.5 }); //ápice de la pirámide
+
+   //Triángulos:
+   for (unsigned int i=0 ; i< 2*n; i++){
+      triangulos.push_back( {0, i, i+1}); //Base
+   }
+
+   triangulos.push_back( {0, 2*n, 1} );
+
+   for(unsigned int i = 0; i < 2*n; i++) {
+      triangulos.push_back( {2*n+1, i, i+1} ); //laterales
+   }
+
+   triangulos.push_back( {2*n+1, 2*n, 1} );
+
+   //Colores:
+   col_ver.push_back({1, 1, 1});     //(R,G,B) -> (x,y,z)
+
+   for(unsigned int i = 0; i < 2*n; i += 2) {   // Colores de los vértices de la base de la pirámide
+      col_ver.push_back( {float(std::cos(i*M_PI/n)/2 + 0.5), float(std::sin(i*M_PI/n)/2 + 0.5), 0} );
+      col_ver.push_back( {float(std::cos((i+1)*M_PI/n)/4 + 0.5), float(std::sin((i+1)*M_PI/n)/4 + 0.5), 0} );
+   }
+
+   col_ver.push_back( {1, 1, 1} );  // Color de la punta de la pirámide
+
+}
+
+
+RejillaY::RejillaY(unsigned n, unsigned m): MallaInd( " Rejilla Y " ){
+    
+   
+    //Vértices:
+   float distancia_x = 1.0/(n-1);
+   float distancia_z = 1.0/(m-1);
+   
+   for(unsigned i=0; i<n; i++){
+      for(unsigned j=0; j<m; j++){
+         vertices.push_back({ i*distancia_x, 0, j*distancia_z });
+      }
+   }
+
+    //Triángulos:
+   int total = (n-1)*(m-1);
+   for(int i=0; i< n-1; i++){
+       for(int j=0; j< m-1; j++){
+         triangulos.push_back( {m*i+j, m*i+(j+1), m*(i+1)+j} );
+         triangulos.push_back( { m*i+(j+1), m*(i+1)+j, m*(i+1)+(j+1)} );
+       }
+   }
+
+    //Colores:
+
+   for(unsigned i=0; i<n; i++){
+      for(unsigned j=0; j<m; j++){
+         col_ver.push_back({ i*distancia_x, 0, j*distancia_z });
+      }
+   }
+   
+}
+
+
+MallaTorre::MallaTorre(unsigned n): MallaInd( " Malla Torre " ){
+
+   //4(n+1) vértices
+   //8n triangulos
+   //n secciones (plantas)
+
+   //Vértices
+   for(unsigned i=0; i<=n; i++){
+      vertices.push_back({0, i, 0});
+      vertices.push_back({1.0, i, 0});
+      vertices.push_back({1.0, i, 1.0});
+      vertices.push_back({0, i, 1.0});
+   }
+
+   //Triángulos
+   triangulos.push_back({0,3,4});    
+
+   for(int i=0; i<4*n-1; i++){
+      triangulos.push_back( {i, i+1, i+4} );
+      triangulos.push_back( {i+1, i+4, i+5} );
+   }
+
+   triangulos.push_back({4*n-1, 4*n, 4*n+3});
+
 }
 
 // -----------------------------------------------------------------------------------------------
