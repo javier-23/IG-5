@@ -41,6 +41,8 @@
 #include "camara.h"
 #include "materiales-luces.h"
 #include "escena.h"
+#include "grafo-escena.h"
+#include "modelo-jer.h"
 
 
 
@@ -367,6 +369,16 @@ Escena2::Escena2(){
 // los objetos que se indican en los guiones de las práctica 3
 // .......
 
+Escena3::Escena3(){
+
+   using namespace std ;
+   cout << "Creando objetos de la práctica 3." << endl ;
+
+   objetos.push_back(new Caza());
+   objetos.push_back(new GrafoEstrellaX(8));
+   objetos.push_back(new GrafoCubos());
+
+}
 
 
 // ----------------------------------------------------------------------------

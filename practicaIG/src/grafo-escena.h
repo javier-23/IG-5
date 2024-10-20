@@ -33,6 +33,7 @@
 #include "objeto3d.h"
 #include "malla-ind.h" // para poder usar clase MallaInd
 #include "materiales-luces.h"
+#include "malla-revol.h"
 
 //using namespace tup_mat ;
 
@@ -73,6 +74,9 @@ class NodoGrafoEscena : public Objeto3D
    protected:
    // COMPLETAR: práctica 3: definir variables y métodos privados del nodo
    // .......
+   std::vector<EntradaNGE> entradas;
+   bool centro_calculado = false;
+   int fila,  n_esfera;
 
    public:
 
@@ -118,7 +122,37 @@ class NodoGrafoEscena : public Objeto3D
 // *********************************************************************
 
 
+//P3 ejercicios adicionales:
 
+class GrafoEstrellaX : public NodoGrafoEscena{
+
+   private:
+      const unsigned n_parametros = 1;
+      const float parametro = 180+180;
+      glm::mat4 * matriz_1 = nullptr;
+
+   public:
+      GrafoEstrellaX(unsigned n);
+      void actualizarEstadoParametro(const unsigned iParam, const float t_sec);
+      void giro(const float grado);
+      unsigned leerNumParametros() const;
+
+};
+
+class GrafoCubos : public NodoGrafoEscena{
+   
+   private:
+      const float parametro = 360;
+      const unsigned n_parametros = 1;
+      glm::mat4 * matriz_1 = nullptr;
+
+   public:
+      GrafoCubos();
+      void actualizarEstadoParametro(const unsigned iParam, const float t_sec);
+      unsigned leerNumParametros() const;
+      void giro(const float grado);
+
+};
 
 #endif // GRAFO_ESCENA_HPP
 

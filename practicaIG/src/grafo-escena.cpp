@@ -113,14 +113,40 @@ void NodoGrafoEscena::visualizarGL(  )
    // 1. Si el objeto tiene un color asignado (se comprueba con 'tieneColor')
    //     - hacer push del color actual del cauce (con 'pushColor') y después
    //     - fijar el color en el cauce (con 'fijarColor'), usando el color del objeto (se lee con 'leerColor()')
+   if(tieneColor()){
+      cauce->pushColor();
+      cauce->fijarColor(cauce->leerColorActual());
+   }
+
    // 2. Guardar copia de la matriz de modelado (con 'pushMM'), 
+   cauce->pushMM();
+
    // 3. Para cada entrada del vector de entradas:
    //     - si la entrada es de tipo objeto: llamar recursivamente a 'visualizarGL'
    //     - si la entrada es de tipo transformación: componer la matriz (con 'compMM')
+   for(int i=0; i< entradas.size(); i++){
+
+      switch (entradas[i].tipo)
+      {
+      case TipoEntNGE::objeto:
+         entradas[i].objeto->visualizarGL();
+         break;
+      case TipoEntNGE::transformacion:
+         cauce->compMM( *(entradas[i].matriz) );
+         break;
+      case TipoEntNGE::noInicializado:
+         break;
+      
+      }
+   }
+   
    // 4. Restaurar la copia guardada de la matriz de modelado (con 'popMM')
+   cauce->popMM();
+   
    // 5. Si el objeto tiene color asignado:
    //     - restaurar el color original a la entrada (con 'popColor')
-
+   if(tieneColor())
+      cauce->popColor();
 
    // COMPLETAR: práctica 4: añadir gestión de los materiales cuando la iluminación está activada    
    //
@@ -151,10 +177,20 @@ void NodoGrafoEscena::visualizarGeomGL(  )
    // Se dan estos pasos:
    //
    // 1. Guardar copia de la matriz de modelado (con 'pushMM'), 
+   cauce->pushMM();
+   
    // 2. Para cada entrada del vector de entradas:
    //         - Si la entrada es de tipo objeto: llamar recursivamente a 'visualizarGeomGL'.
    //         - Si la entrada es de tipo transformación: componer la matriz (con 'compMM').
+   for(int i=0; i< entradas.size(); i++){
+      if(entradas[i].tipo == TipoEntNGE::objeto)
+         entradas[i].objeto->visualizarGeomGL();
+      else if(entradas[i].tipo == TipoEntNGE::transformacion)
+         cauce->compMM( *(entradas[i].matriz) );
+   }
+   
    //   3. Restaurar la copia guardada de la matriz de modelado (con 'popMM')
+   cauce->popMM();
 
    // .......
 
@@ -258,10 +294,12 @@ glm::mat4 * NodoGrafoEscena::leerPtrMatriz( unsigned indice )
    //   - el índice está fuera de rango 
    //   - la entrada no es de tipo transformación
    //   - el puntero a la matriz es nulo 
-   //
+   assert(indice < entradas.size());
+   assert(entradas[indice].tipo == TipoEntNGE::transformacion);
+   assert(entradas[indice].matriz != nullptr);
    // Sustituir 'return nullptr' por lo que corresponda.
    //
-   return nullptr ;
+   return entradas[indice].matriz;
 
 
 }
@@ -317,7 +355,132 @@ bool NodoGrafoEscena::buscarObjeto
 }
 
 
+//P3 ejercicios adicionales:
 
+GrafoEstrellaX::GrafoEstrellaX(unsigned n){
+   
+   assert(n>1);
+   ponerNombre("GradoEstrellaX");
+
+   //Estrella:
+   EstrellaZ * estrellaZ = new EstrellaZ(n);
+
+   NodoGrafoEscena *estrellaPlana = new NodoGrafoEscena();
+   estrellaPlana->agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
+   estrellaPlana->agregar(glm::scale(glm::vec3(1.3*2, 1.3*2, 1.3*2)));
+   estrellaPlana->agregar(glm::translate(glm::vec3(-0.5, -0.5 ,0)));
+   estrellaPlana->agregar(estrellaZ);
+
+   //Conos:
+   Cono *cono_objeto = new Cono(20,40);
+
+   NodoGrafoEscena *conos = new NodoGrafoEscena();
+   conos->agregar(glm::translate(glm::vec3(0, 0, 1.3)));    
+   conos->agregar(glm::rotate(glm::radians(90.0f), glm::vec3(1, 0, 0))); //Primer cono empieza en z positivo
+   conos->agregar(glm::scale(glm::vec3(0.14, 0.15 , 0.14)));
+   conos->agregar(cono_objeto);
+
+   unsigned ind1 = agregar(glm::rotate(glm::radians(0.0f), glm::vec3(1, 0, 0))); //Antes de cualquier agregar general 
+
+   agregar(conos);   //Añade el primer cono
+   unsigned rotacion = 360/n;
+   for(int i=0; i<n-1; i++){
+      agregar(glm::rotate(glm::radians(float(rotacion)), glm::vec3(1, 0, 0)));
+      agregar(conos);
+   }
+
+   agregar(estrellaPlana);
+
+   matriz_1 = leerPtrMatriz(ind1);
+
+}
+
+void GrafoEstrellaX::actualizarEstadoParametro(const unsigned iParam, const float t_sec){
+   
+   switch (iParam)
+   {
+   case 0:
+      giro(parametro*sin(2*M_PI*2.5*t_sec));
+      break;
+   default:
+      break;
+   }
+
+}
+
+void GrafoEstrellaX::giro(const float grado){
+
+   *matriz_1 = glm::rotate(glm::radians(grado), glm::vec3(1, 0, 0));
+
+}
+
+unsigned GrafoEstrellaX::leerNumParametros() const{
+   return n_parametros;
+}
+
+GrafoCubos::GrafoCubos(){
+
+   ponerNombre("GrafoCubos");
+
+   RejillaY *rejilla = new RejillaY(7,7); //Objeto
+
+   NodoGrafoEscena *nodo_rejillas = new NodoGrafoEscena();
+   nodo_rejillas->agregar(glm::translate(glm::vec3(-0.5, -0.5, -0.5))); //Cara inferior
+   nodo_rejillas->agregar(rejilla);
+   agregar(nodo_rejillas);
+
+   Cubo *cubo = new Cubo(); //Objeto
+
+   NodoGrafoEscena *nodo_cubos = new NodoGrafoEscena();
+   unsigned ind1 = nodo_cubos->agregar(glm::rotate(glm::radians(0.0f), glm::vec3(0, 1, 0))); // Para rotar cada cubo
+   nodo_cubos->agregar(glm::translate(glm::vec3(0, -0.9, 0)));
+   nodo_cubos->agregar(glm::scale(glm::vec3(0.2, 0.4 , 0.2)));
+   nodo_cubos->agregar(cubo); //Cubo inferior
+   agregar(nodo_cubos);
+
+
+   for(int i=0; i<3; i++){
+         agregar(glm::rotate(glm::radians(90.0f), glm::vec3(1, 0, 0)));
+         agregar(nodo_rejillas);
+         agregar(nodo_cubos);
+   }
+
+   //Añadir las dos ultimas caras
+   agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1)));
+   agregar(nodo_rejillas);
+   agregar(nodo_cubos);
+   agregar(glm::rotate(glm::radians(180.0f), glm::vec3(0, 0, 1)));
+   agregar(nodo_rejillas);
+   agregar(nodo_cubos);
+
+   matriz_1 = nodo_cubos->leerPtrMatriz(ind1);  //Mover solo los cubos
+
+}
+
+
+void GrafoCubos::actualizarEstadoParametro(const unsigned iParam, const float t_sec){
+   
+   switch (iParam)
+   {
+   case 0:
+      giro(parametro*sin(2*M_PI*2.5*t_sec));
+      break;
+   default:
+      break;
+   }
+
+}
+
+void GrafoCubos::giro(const float grado){
+
+   *matriz_1 = glm::rotate(glm::radians(grado), glm::vec3(0, 1, 0));
+
+}
+
+
+unsigned GrafoCubos::leerNumParametros() const{
+   return n_parametros;
+}
 
 
 
