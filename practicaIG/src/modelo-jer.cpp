@@ -20,21 +20,10 @@ TrianguloRectangulo::TrianguloRectangulo():MallaInd(" Triangulo Rectangulo "){
     vertices.push_back({0, 0.5,0 });
 
     triangulos.push_back( {0, 1, 2} );
-
-    cc_tt_ver.push_back({0, 0});
-    cc_tt_ver.push_back({1, 0});
-    cc_tt_ver.push_back({0, 1});
     
 }
 
 Ala::Ala(){
-
-    //Identificador:
-    int id_alas = 1;
-
-    //Textura:
-    Textura * gris = new Textura("gris.jpg");
-    Material * material_ala = new Material( gris, 0.7, 1.0, 0.0, 1.0);
 
     Esfera * esfera = new Esfera(20,50);
     esfera->ponerColor( {0.6313, 0.6313, 0.6313} );
@@ -47,7 +36,6 @@ Ala::Ala(){
     ala->agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1)));
     ala->agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
     ala->agregar( glm::scale(glm::vec3(3.0, 4.0 , 0)));
-    ala->agregar(material_ala);
     ala->agregar(triangulo_rectangulo);
         
     NodoGrafoEscena *misil = new NodoGrafoEscena();
@@ -57,7 +45,6 @@ Ala::Ala(){
     misil->agregar(esfera);
 
     ponerNombre("Alas principales");
-    ponerIdentificador(id_alas);
     agregar(ala);
     agregar(misil);
 
@@ -65,20 +52,12 @@ Ala::Ala(){
 
 Esqueleto::Esqueleto(){
 
-    //Identificador:
-    int id_esqueleto = 2;
-
-    //Material:
-    Material * material_esqueleto = new Material(0.6, 1.0, 0.0, 1.0); //Material difuso
-
     Esfera* esfera_cuerpo= new Esfera(20,50);
     esfera_cuerpo->ponerColor({0.5568, 0.5568, 0.5568});
 
     NodoGrafoEscena * cuerpo1 = new NodoGrafoEscena();
     cuerpo1->agregar(glm::translate(glm::vec3(1.5, 2.0, 0.9)));
     cuerpo1->agregar(glm::scale(glm::vec3(0.45, 0.4, 2.5)));
-    cuerpo1->ponerIdentificador(id_esqueleto);
-    cuerpo1->agregar(material_esqueleto);
     cuerpo1->ponerNombre("Parte central del avión");
     cuerpo1->agregar(esfera_cuerpo);
 
@@ -88,12 +67,6 @@ Esqueleto::Esqueleto(){
 
 Morro::Morro(){
 
-    //Identificador:
-    int id_morro = 3;
-
-    //Material
-    Material * material_morro = new Material(0.6, 0.6, 0.8, 10.0);
-
     Cono * cono = new Cono(20,40);
     cono->ponerColor({0.7373, 0.7373, 0.7373});
 
@@ -101,9 +74,7 @@ Morro::Morro(){
     morro1->agregar(glm::translate(glm::vec3(1.5, 2.0, -1.1)));
     morro1->agregar(glm::rotate(glm::radians(270.0f), glm::vec3(1, 0, 0)));
     morro1->agregar(glm::scale(glm::vec3(0.275, 0.9, 0.25)));
-    morro1->ponerIdentificador(id_morro);
     morro1->ponerNombre("Morro del avion");
-    morro1->agregar(material_morro);
     morro1->agregar(cono);
 
     agregar(morro1);
@@ -111,12 +82,6 @@ Morro::Morro(){
 }
 
 Cabina::Cabina(){
-
-    //Identificador:
-    int id_cabina = 4;
-
-    //Material:
-    Material * material_cabina = new Material( 0.9, 0.0, 1.0, 20.0); //Material pseudo-especular
 
     Esfera * esfera = new Esfera(32,64); 
     esfera->ponerColor({0.6235, 0.8353, 0.8196});
@@ -126,9 +91,7 @@ Cabina::Cabina(){
     cabina1->agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
     cabina1->agregar(glm::rotate(glm::radians(350.0f), glm::vec3(0, 0, 1)));
     cabina1->agregar(glm::scale(glm::vec3(0.8, 0.25 ,0.3)));
-    cabina1->ponerIdentificador(id_cabina);
     cabina1->ponerNombre("Cabina");
-    cabina1->agregar(material_cabina);
     cabina1->agregar(esfera);
 
     agregar(cabina1);
@@ -136,9 +99,6 @@ Cabina::Cabina(){
 }
 
 Motor::Motor(){
-
-    //Identificador:
-    int id_motores = 5;
 
     Cilindro * cilindro_motor= new Cilindro(20,50);
     cilindro_motor->ponerColor({0,0,0});
@@ -149,14 +109,10 @@ Motor::Motor(){
     motor->agregar(cilindro_motor);
 
     ponerNombre("Motores del avion");
-    ponerIdentificador(id_motores);
     agregar(motor);
 }
 
 Minialas::Minialas(){
-
-    //Identificador:
-    int id_minialas = 6;
 
     TrianguloObtusangulo * triangulo = new TrianguloObtusangulo();
     triangulo->ponerColor({0.6313, 0.6313, 0.6313});
@@ -167,50 +123,30 @@ Minialas::Minialas(){
     miniala->agregar(triangulo);
 
     ponerNombre("Minialas");
-    ponerIdentificador(id_minialas);
     agregar(miniala);
 
 }
 
 Fuego::Fuego(){
 
-    //Identificador:
-    int id_fuegos = 7;
-
-    //Textura :
-    Textura * fuego_text = new TexturaXY("fuego.jpg");
-    Material * material_fuego = new Material( fuego_text, 1.0, 1.0, 1.0, 1.0);
-
     Esfera* esfera_fuego= new Esfera(20,50);
     esfera_fuego->ponerColor({0.99607, 0, 0.019607});
 
     NodoGrafoEscena * fuego = new NodoGrafoEscena();
     fuego->agregar(glm::scale(glm::vec3(0.078, 0.078, 0.001)));
-    fuego-agregar(material_fuego);
     fuego->agregar(esfera_fuego);
 
     ponerNombre("Combustion del motor");
-    ponerIdentificador(id_fuegos);
     agregar(fuego);
 }
 
 
 Cuerpo::Cuerpo(){
 
-    //int id_morro = 3;
-
-    //Textura y Material del Ala Superior:
-    Textura * textura_alasuperior = new TexturaXY("spain.jpg");
-    Material * material_alasuperior = new Material( textura_alasuperior, 1.0, 1.0, 1.0, 1.0);
-
-    //Material alas pequeñas laterales:
-    Material * material_gris = new Material(0.6, 1.0, 0.0, 1.0);
-
     NodoGrafoEscena * base = new NodoGrafoEscena();
     base->agregar(new Esqueleto());
     
     NodoGrafoEscena * morro = new NodoGrafoEscena();
-    //morro->ponerIdentificador(id_morro);
     morro->agregar(new Morro());
 
     NodoGrafoEscena * motor1 = new NodoGrafoEscena();
@@ -226,7 +162,6 @@ Cuerpo::Cuerpo(){
 
     NodoGrafoEscena * ala_superior = new NodoGrafoEscena();
     ala_superior->agregar(glm::translate(glm::vec3(1.5, 2.1, 3.3)));
-    ala_superior->agregar(material_alasuperior);
     ala_superior->agregar(new Minialas());
 
     NodoGrafoEscena * fuego_dcho = new NodoGrafoEscena();
@@ -240,13 +175,11 @@ Cuerpo::Cuerpo(){
     NodoGrafoEscena * ala_peque_izq = new NodoGrafoEscena();
     ala_peque_izq->agregar(glm::translate(glm::vec3(1.3, 2.0, -0.3)));
     ala_peque_izq->agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1)));
-    ala_peque_izq->agregar(material_gris);
     ala_peque_izq->agregar(new Minialas());
 
     NodoGrafoEscena * ala_peque_dcha = new NodoGrafoEscena();
     ala_peque_dcha->agregar(glm::translate(glm::vec3(1.7, 2.0, -0.3)));
     ala_peque_dcha->agregar(glm::rotate(glm::radians(270.0f), glm::vec3(0, 0, 1)));
-    ala_peque_dcha->agregar(material_gris);
     ala_peque_dcha->agregar(new Minialas());
 
     agregar(base);
@@ -264,9 +197,6 @@ Cuerpo::Cuerpo(){
 
 Misil::Misil(){
 
-    //Identificador:
-    int id_misiles = 8;
-
     Esfera * esfera = new Esfera(20,50);
     esfera->ponerColor( {0.3019, 0.3019, 0.3019} );
 
@@ -276,7 +206,6 @@ Misil::Misil(){
     misil_grande->agregar(esfera);
 
     ponerNombre("Misiles grandes");
-    ponerIdentificador(id_misiles);
     agregar(misil_grande);
 
 }
@@ -332,16 +261,16 @@ unsigned Caza::leerNumParametros() const {
 void Caza::actualizarEstadoParametro(const unsigned iParam, const float t_sec) {
 
     assert(0<=iParam<=n_parametros);
-    switch (iParam)
-    {
-    case 0:
-        traslacion(2, 2, grado1*sin(M_PI*t_sec));
+    
+    switch (iParam){
+        case 0:
+            traslacion(2, 2, grado1*sin(M_PI*t_sec));
         break;
-    case 1:
-        rotacion(grado2*sin(M_PI*t_sec));
+        case 1:
+            rotacion(grado2*sin(M_PI*t_sec));
         break;
-    case 2:
-        rotacion2(grado3*sin(M_PI*t_sec));
+        case 2:
+            rotacion2(grado3*sin(M_PI*t_sec));
         break;
     }
 }

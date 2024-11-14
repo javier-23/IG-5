@@ -334,12 +334,6 @@ Escena1::Escena1()
    objetos.push_back(new MallaCuadrado());
    objetos.push_back(new MallaPiramideL());
 
-   /*
-   objetos.push_back(new MallaTriangulo());
-   objetos.push_back(new MallaCuadrado());
-   */
-   // .......
-
 }
 
 // -------------------------------------------------------------------------
@@ -378,6 +372,8 @@ Escena3::Escena3(){
    cout << "Creando objetos de la práctica 3." << endl ;
 
    objetos.push_back(new Caza());
+
+   //Ejercicios P3:
    objetos.push_back(new GrafoEstrellaX(8));
    objetos.push_back(new GrafoCubos());
 

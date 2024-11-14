@@ -260,8 +260,8 @@ void NodoGrafoEscena::visualizarModoSeleccionGL()
 unsigned NodoGrafoEscena::agregar( const EntradaNGE & entrada )
 {
    // COMPLETAR: práctica 3: agregar la entrada al nodo, devolver índice de la entrada agregada
-   // ........
-   return 0 ; // sustituir por lo que corresponda ....
+   entradas.push_back(entrada);
+   return (entradas.size()-1) ; // sustituir por lo que corresponda ....
 
 }
 // -----------------------------------------------------------------------------
