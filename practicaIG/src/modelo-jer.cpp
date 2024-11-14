@@ -1,3 +1,6 @@
+// Nombre: Javier, Apellidos: Mora Ortiz-Villajos, Titulación: GIADE
+// Email: javier23@correo.ugr.es, DNI: 20619222K
+
 #include "modelo-jer.h"
 
 using namespace std;
