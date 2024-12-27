@@ -128,6 +128,12 @@ class Cubo : public MallaInd
       Cubo();
 };
 
+class Cubo24 : public MallaInd
+{
+   public:
+      Cubo24();
+};
+
 class Tetraedro : public MallaInd{
    public:
       Tetraedro();
@@ -180,6 +186,14 @@ class RejillaY : public MallaInd{
 class MallaTorre : public MallaInd{
    public:
       MallaTorre(unsigned n);
+};
+
+
+//Ejercicios adicionales P4:
+class MallaDiscoP4 : public MallaInd
+{
+   public:
+      MallaDiscoP4(int ejerc);
 };
 
 // ---------------------------------------------------------------------

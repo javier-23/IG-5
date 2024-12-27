@@ -48,7 +48,7 @@ Textura::Textura( const std::string & nombreArchivoJPG )
    // El nombre del archivo debe ir sin el 'path', la función 'LeerArchivoJPG' lo 
    // busca en 'materiales/imgs' y si no está se busca en 'archivos-alumno'
    // .....
-
+   imagen = LeerArchivoJPEG(nombreArchivoJPG.c_str(), ancho, alto);
 }
 
 // ---------------------------------------------------------------------
@@ -60,6 +60,52 @@ void Textura::enviar()
    // COMPLETAR: práctica 4: enviar la imagen de textura a la GPU
    // y configurar parámetros de la textura (glTexParameter)
    // .......
+   glGenTextures( 1, &ident_textura);
+   // Activa textura con identificador ’idTex’ :
+   glActiveTexture(GL_TEXTURE0);
+   // Activa textura con identificador nombre_tex
+   glBindTexture( GL_TEXTURE_2D, ident_textura );
+   // Envia la textura a la GPU
+   glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, ancho, alto, 0, GL_RGB, GL_UNSIGNED_BYTE, imagen );
+   // Generar mipmaps (versiones a resolución reducida)
+   glGenerateMipmap( GL_TEXTURE_2D );
+   // Selección de texels para texturas cercanas (magnificadas)
+   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+   // Selección de texels para texturas lejanas (minimizadas)
+   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+   // Selección de texels con coord. de textura fuera de rango
+   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+
+   enviada = true;
+
+}
+
+TexturaXY::TexturaXY( const std::string & nom ): Textura(nom) {
+
+   modo_gen_ct = mgct_coords_objeto;
+   coefs_s[0] = 1.0f;
+   coefs_s[1] = 0.0f;
+   coefs_s[2] = 0.0f;
+   coefs_s[3] = 0.0f;
+   coefs_t[0] = 0.0f;
+   coefs_t[1] = 1.0f;
+   coefs_t[2] = 0.0f;
+   coefs_t[3] = 0.0f;
+
+}
+
+TexturaXZ::TexturaXZ( const std::string & nom ): Textura(nom) {
+
+   modo_gen_ct = mgct_coords_objeto;
+   coefs_s[0] = 1.0f;
+   coefs_s[1] = 0.0f;
+   coefs_s[2] = 0.0f;
+   coefs_s[3] = 0.0f;
+   coefs_t[0] = 0.0f;
+   coefs_t[1] = 0.0f;
+   coefs_t[2] = 1.0f;
+   coefs_t[3] = 0.0f;
 
 }
 
@@ -87,6 +133,11 @@ void Textura::activar(  )
 
    // COMPLETAR: práctica 4: enviar la textura a la GPU (solo la primera vez) y activarla
    // .......
+   if(!enviada)
+      enviar();
+
+   cauce->fijarEvalText(true, ident_textura);
+   cauce->fijarTipoGCT(modo_gen_ct, coefs_s, coefs_t);
 
 }
 // *********************************************************************
@@ -145,6 +196,17 @@ void Material::activar( )
 
    // COMPLETAR: práctica 4: activar un material
    // .....
+   if(textura != nullptr)
+      textura->activar();
+   else
+      aplicacionIG->cauce->fijarEvalText(false);
+
+   if(exp_pse < 1.0)
+      exp_pse = 1.0;
+   assert(exp_pse >= 1.0);
+   cauce->fijarParamsMIL(k_amb, k_dif, k_pse, exp_pse);
+
+   aplicacionIG->pila_materiales->activar(this);
 
 }
 //**********************************************************************
@@ -213,7 +275,27 @@ void ColFuentesLuz::activar( )
    //   - crear un 'std::vector' con los colores y otro con las posiciones/direcciones,
    //   - usar el método 'fijarFuentesLuz' del cauce para activarlas
    // .....
+   std::vector<glm::vec3> colores;
+   std::vector<glm::vec4> posiciones_direcciones;
 
+   for(unsigned int i = 0; i < vpf.size(); ++i) {
+
+      colores.push_back(vpf[i]->color);
+
+      float lon = vpf[i]->longi*2*M_PI/360.0;
+      float lat = vpf[i]->lati*2*M_PI/360.0;
+
+      float x = cos(lat)*cos(lon);
+      float y = sin(lat);
+      float z = cos(lat)*sin(lon);
+
+      glm::vec4 aux = {x,y,z,0.0};
+
+      posiciones_direcciones.push_back(aux);
+
+   }
+
+   cauce->fijarFuentesLuz(colores, posiciones_direcciones);
 }
 
 // ---------------------------------------------------------------------

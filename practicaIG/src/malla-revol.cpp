@@ -50,6 +50,56 @@ void MallaRevol::inicializar
 )
 {
    using namespace glm ;
+
+   //Práctica 4:
+
+   //Cálculo de normales de las aristas
+   vector<glm::vec3> nor_ari_per(0);
+   for(unsigned int i=0; i<perfil.size()-1; ++i) {
+      glm::vec3 nor_ari = perfil[i+1] - perfil[i];
+      nor_ari = glm::vec3(nor_ari.y, -nor_ari.x ,nor_ari.z);
+      nor_ari = normalize(nor_ari);
+      nor_ari_per.push_back(nor_ari);
+   }
+
+   //Calcular normales de los vertices
+
+   vector<glm::vec3> nor_vert_per(0);
+   nor_vert_per.push_back(nor_ari_per[0]);
+   for(unsigned int i=1; i<nor_ari_per.size()-1; ++i){
+      glm::vec3 nor_vert = nor_ari_per[i] + nor_ari_per[i-1];
+      nor_vert = normalize(nor_ari_per[i] + nor_ari_per[i-1]);
+      nor_vert_per.push_back(nor_vert);
+   }
+   nor_vert_per.push_back(nor_ari_per[nor_ari_per.size()-1]);
+
+
+
+   //Calcular coordenadas de textura
+
+   vector<float> d;
+   vector<float> t;
+
+   //d:
+   for(unsigned int i = 0; i < perfil.size() - 1; ++i)
+      d.push_back(length(perfil[i+1] - perfil[i]));
+
+   //normalizador:
+   float sum = 0.0f;
+   for(uint i = 0; i < d.size(); ++i)
+      sum += d[i];
+
+   //Iniciamos t (simplificar algoritmo)
+   for(unsigned int i = 0; i < perfil.size(); ++i)
+      t.push_back(0.0);
+
+   //t:
+   for(unsigned int i = 0; i < perfil.size(); ++i) {
+      for(unsigned int j = 0; j < i; ++j)
+         t[i] += d[j];
+
+      t[i] = t[i]/sum*1.0f;
+   }
    
    // COMPLETAR: práctica 2: implementar algoritmo de creación de malla de revolución
    //
@@ -67,12 +117,15 @@ void MallaRevol::inicializar
       float angulo = (2*M_PI*i)/(num_copias-1);
       for (float j=0; j<perfil.size(); ++j){
          float radio = perfil[j].x;
+         float radio_nor = nor_vert_per[j].x;
          vertices.push_back(glm::vec3{radio *cos(angulo), perfil[j].y, -1*radio *sin(angulo)});
+         nor_ver.push_back(glm::vec3{radio_nor *cos(angulo), nor_vert_per[j].y, -1*radio_nor *sin(angulo)});
+         cc_tt_ver.push_back(glm::vec2{i/(num_copias-1.0),1-t[j]});
       }
    }
 
    unsigned int k;
-   triangulos.clear(); //* 
+   triangulos.clear();
    //Tabla de triángulos
    for(unsigned int i=0 ; i<num_copias-1; i++){
       for(unsigned int j=0 ; j<perfil.size()-1; j++){
@@ -105,9 +158,11 @@ MallaRevolPLY::MallaRevolPLY
 
 }
 
+//P2:
 
 Cilindro::Cilindro(const int num_verts_per, const unsigned nperfiles){
-   //ponerNombre( std::string(" Cilindro "));
+   
+   //ponerNombre("Cilindro");
    vector<glm::vec3> vertices_perfil;
    double distancia = +1.0 / num_verts_per;
    
@@ -120,7 +175,8 @@ Cilindro::Cilindro(const int num_verts_per, const unsigned nperfiles){
 
 
 Cono::Cono(const int num_verts_per, const unsigned nperfiles){
-   //ponerNombre(" Cono ");
+   
+   //ponerNombre("Cono");
    vector<glm::vec3> vertices_perfil;
    double distancia = +1.0 / num_verts_per;
 
@@ -135,7 +191,8 @@ Cono::Cono(const int num_verts_per, const unsigned nperfiles){
 
 
 Esfera::Esfera(const int num_verts_per, const unsigned nperfiles){
-   //ponerNombre(" Esfera ");
+   
+   //ponerNombre("Esfera");
    vector<glm::vec3> vertices_perfil;
    float distancia = M_PI/num_verts_per;
 

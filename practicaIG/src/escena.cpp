@@ -46,6 +46,8 @@
 #include "escena.h"
 #include "grafo-escena.h"
 #include "modelo-jer.h"
+#include "examen-ec-p123.h"
+#include "latapeones.h"
 
 
 
@@ -61,13 +63,20 @@ Escena::Escena()
    // - Se deben de elegir los parámetros del material.
    //
    // ...
-
+   col_fuentes = new Col2Fuentes();
+   material_ini = new Material();
 
    // COMPLETAR: práctica 5: añadir varias cámaras perspectiva y ortogonales al vector de cámaras de la escena
    //
    // Añadir sentencias 'push_back' para añadir varias cámaras al vector 'camaras'.
    // Eliminar este 'push_back' de la cámara orbital simple ('CamaraOrbitalSimple') por varias cámaras de 3 modos ('Camara3Modos')
-   camaras.push_back( new CamaraOrbitalSimple() );
+   camaras.push_back(new CamaraOrbitalSimple);
+   camaras.push_back(new Camara3Modos(false,{3.0f, 0.0f, 0.0f}, 3.0f, {0.0f, 0.0f, 0.0f}, 70.0f));          // Perspectiva perfil
+   camaras.push_back(new Camara3Modos(false,{0.00000001f, 3.0f, 0.0f}, 3.0f, {0.0f, 0.0f, 0.0f}, 70.0f));   // Perspectiva planta   
+   camaras.push_back(new Camara3Modos(false,{0.0f, 0.0f, 3.0f}, 3.0f, {0.0f, 0.0f, 0.0f}, 70.0f));          // Perspectiva alzado 
+   camaras.push_back(new Camara3Modos(true,{3.0f, 0.0f, 0.0f}, 3.0f, {0.0f, 0.0f, 0.0f}));                  // ortográfica perfil
+   camaras.push_back(new Camara3Modos(true,{0.00000001f, 3.0f, 0.0f}, 3.0f, {0.0f, 0.0f, 0.0f}));           // Ortográfica planta
+   camaras.push_back(new Camara3Modos(true,{0.0f, 0.0f, 3.0f}, 3.0f, {0.0f, 0.0f, 0.0f}));
 
 }
 // -----------------------------------------------------------------------------------------------
@@ -148,6 +157,10 @@ void Escena::visualizarGL( )
       // * activar la colección de fuentes de la escena
       // * activar el material inicial (usando 'pila_materiales')
       // ....
+      cauce->fijarEvalMIL(true);
+      cauce->fijarEvalText(false);
+      col_fuentes->activar();
+      material_ini->activar();
 
    }
    else // si la iluminación no está activada, deshabilitar MIL y texturas
@@ -210,6 +223,8 @@ void Escena::visualizarGL_Seleccion(  )
    //       + fijar el modo de polígonos a 'relleno', con 'glPolygonMode'
    //
    // ........
+   glViewport( 0, 0, aplicacionIG->ventana_tam_x, aplicacionIG->ventana_tam_y);
+   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
    // (2) Activar  y configurar el cauce:
@@ -217,19 +232,24 @@ void Escena::visualizarGL_Seleccion(  )
    //      + Desactivar iluminación y texturas en el cauce
    //      + Poner el color actual del cauce a '0' (por defecto los objetos no son seleccionables)
    // ........
-
+   cauce->activar();
+   cauce->fijarEvalText(false);
+   cauce->fijarEvalMIL(false);
+   cauce->fijarColor(0.0, 0.0, 0.0);
 
    // (3) Limpiar el framebuffer (color y profundidad) con color (0,0,0) (para indicar que en ningún pixel hay nada seleccionable)
    // ........
-
+   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  //***
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    // (4) Recuperar la cámara actual (con 'camaraActual') y activarla en el cauce, 
    // ........
-
+   camaraActual()->activar(*cauce);
 
    // (5) Recuperar (con 'objetoActual') el objeto raíz actual de esta escena y 
    //     visualizarlo con 'visualizarModoSeleccionGL'.
    // ........
+   objetoActual()->visualizarModoSeleccionGL();
 
 }
 
@@ -251,7 +271,11 @@ void Escena::visualizarNormales(  )
    //      * Desactivar el uso de texturas (con 'fijarEvalText')
    //      * fijar el color (con 'fijarColor') 
    // 2. Visualizar las normales del objeto actual de la escena (con el método 'visualizarNormalesGL')
+   cauce->fijarEvalMIL(false);
+   cauce->fijarEvalText(false);
+   cauce->fijarColor(0,0,0);
 
+   objetos[ind_objeto_actual]->visualizarNormalesGL();
    // ......
 
 }
@@ -324,7 +348,10 @@ Escena1::Escena1()
    //
    // Añadir sentencias 'push_back' adicionales para agregar al 
    // array 'objetos' otros objetos de la práctica 1
-   // 
+   //
+   
+   //Ejercicio 1 Parcial 1:
+   objetos.push_back(new Ejercicio1());
    
    objetos.push_back(new Tetraedro());
    objetos.push_back(new CuboColores());
@@ -347,6 +374,9 @@ Escena2::Escena2(){
    using namespace std ;
    cout << "Creando objetos de la práctica 2." << endl ;
 
+   //Ejercicio 2 Parcial 1
+   objetos.push_back(new Ejercicio2(2));
+   
    objetos.push_back(new Cilindro(10,50));
    objetos.push_back(new Cono(10,50));
    objetos.push_back(new Esfera(32,64));
@@ -371,6 +401,9 @@ Escena3::Escena3(){
    using namespace std ;
    cout << "Creando objetos de la práctica 3." << endl ;
 
+   //Ejercicio 3 Parcial 3:
+   objetos.push_back(new Ejercicio3(0.5, 3));
+
    objetos.push_back(new Caza());
 
    //Ejercicios P3:
@@ -386,7 +419,21 @@ Escena3::Escena3(){
 // Añadir la implementación del constructor de la clase Escena4 para construir
 // los objetos que se indican en el guion de la práctica 4
 // .......
+Escena4::Escena4(){
 
+   using namespace std ;
+   cout << "Creando objetos de la práctica 4." << endl ;
+
+
+   objetos.push_back(new LataPeones());
+   objetos.push_back(new NodoCubo24());
+   //Ejercicio adicional 1
+   objetos.push_back(new NodoDiscoP4(1));
+   //Ejercicio adicional 2
+   objetos.push_back(new NodoDiscoP4(2));
+
+
+}
 
 
 // ----------------------------------------------------------------------
@@ -396,5 +443,19 @@ Escena3::Escena3(){
 // los objetos que se indican en el guion de la práctica 5
 // .......
 
+Escena5::Escena5(){
+
+   using namespace std ;
+   cout << "Creando objetos de la práctica 5." << endl ;
+
+
+   objetos.push_back(new VariasLatasPeones());
+
+   //Ejercicios adicionales
+   objetos.push_back(new GrafoEsferasP5());
+   objetos.push_back(new GrafoEsferasP5_2());
+
+
+}
 
 

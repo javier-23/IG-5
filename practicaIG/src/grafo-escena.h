@@ -37,6 +37,7 @@
 #include "malla-ind.h" // para poder usar clase MallaInd
 #include "materiales-luces.h"
 #include "malla-revol.h"
+#include "camara.h"
 
 //using namespace tup_mat ;
 
@@ -131,8 +132,8 @@ class GrafoEstrellaX : public NodoGrafoEscena{
 
    private:
       const unsigned n_parametros = 1;
-      const float parametro = 180+180;
-      glm::mat4 * matriz_1 = nullptr;
+      const float parametro = 180+180; // a + b  = (Vmin+Vmax)/2 + (Vmax-Vmin)/2, oscila entre Vmax y Vmin
+      glm::mat4 * matriz_1 = nullptr; 
 
    public:
       GrafoEstrellaX(unsigned n);
@@ -155,6 +156,43 @@ class GrafoCubos : public NodoGrafoEscena{
       unsigned leerNumParametros() const;
       void giro(const float grado);
 
+};
+
+//P4:
+
+class NodoCubo24: public NodoGrafoEscena{
+   public:
+      NodoCubo24();
+};
+
+
+class NodoDiscoP4: public NodoGrafoEscena{
+   public:
+      NodoDiscoP4(int ejerc);
+};
+
+//Ejercicios adicionales P5
+
+class GrafoEsferasP5: public NodoGrafoEscena{
+   public:
+      GrafoEsferasP5();
+};
+
+class MiEsferaE1: public NodoGrafoEscena{
+   public:
+      MiEsferaE1(unsigned n_esfera_fila, unsigned num_fila);
+      bool cuandoClick(const glm::vec3 &centro_wc);
+};
+
+class GrafoEsferasP5_2: public NodoGrafoEscena{
+   public:
+      GrafoEsferasP5_2();
+};
+
+class MiEsferaE2: public NodoGrafoEscena{
+   public:
+      MiEsferaE2();
+      bool cuandoClick(const glm::vec3 &centro_wc);
 };
 
 #endif // GRAFO_ESCENA_HPP

@@ -127,6 +127,15 @@ class Escena3 : public Escena{
       Escena3();
 };
 
+class Escena4 : public Escena{
+   public:
+      Escena4();
+};
+
+class Escena5 : public Escena{
+   public:
+      Escena5();
+};
 
 // -------------------------------------------------------------------------
 // COMPLETAR: Práctica 2, 3, 4 y 5.

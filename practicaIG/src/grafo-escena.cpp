@@ -105,6 +105,9 @@ void NodoGrafoEscena::visualizarGL(  )
    Cauce *          cauce           = aplicacionIG->cauce ;           assert( cauce != nullptr );
    PilaMateriales * pila_materiales = aplicacionIG->pila_materiales ; assert( pila_materiales != nullptr );
 
+   if(aplicacionIG->iluminacion)
+      pila_materiales->push();
+   
    // COMPLETAR: práctica 3: implementar la visualización del nodo
    //
    // Se deben de recorrer las entradas y llamar recursivamente de visualizarGL, pero 
@@ -137,6 +140,10 @@ void NodoGrafoEscena::visualizarGL(  )
       case TipoEntNGE::transformacion:
          cauce->compMM( *(entradas[i].matriz) );
          break;
+      case TipoEntNGE::material:
+         if(aplicacionIG->iluminacion)
+            pila_materiales->activar(entradas[i].material);
+         break;
       case TipoEntNGE::noInicializado:
          break;
       
@@ -158,7 +165,8 @@ void NodoGrafoEscena::visualizarGL(  )
    //   1. al inicio, hacer 'push' de la pila de materiales (guarda material actual en la pila)
    //   2. si una entrada es de tipo material, activarlo usando a pila de materiales
    //   3. al finalizar, hacer 'pop' de la pila de materiales (restaura el material activo al inicio)
-
+   if(aplicacionIG->iluminacion)
+      pila_materiales->pop();
    // ......
 
 
@@ -220,7 +228,15 @@ void NodoGrafoEscena::visualizarNormalesGL(  )
    // - recorrer las entradas, llamando recursivamente a 'visualizarNormalesGL' en los nodos u objetos hijos
    // - ignorar el color o identificador del nodo (se supone que el color ya está prefijado antes de la llamada)
    // - ignorar las entradas de tipo material, y la gestión de materiales (se usa sin iluminación)
+   cauce->pushMM();
 
+   for(int i=0; i<entradas.size(); i++){
+      if(entradas[i].tipo == TipoEntNGE::objeto){
+         entradas[i].objeto->visualizarNormalesGL();
+      }
+   }
+
+   cauce->popMM();
    // .......
 
 }
@@ -249,7 +265,25 @@ void NodoGrafoEscena::visualizarModoSeleccionGL()
    // 6. Si el identificador no es -1, restaurar el color previo del cauce (con 'popColor')
    //
    // ........
+   if(leerIdentificador() != -1){
+      cauce->pushColor();
+      cauce->fijarColor(ColorDesdeIdent(leerIdentificador()));
+   }
+   cauce->pushMM();
 
+
+   for(unsigned int i=0; i<entradas.size(); i++){
+      if(entradas[i].tipo == TipoEntNGE::objeto)
+         entradas[i].objeto->visualizarModoSeleccionGL();
+      else if(entradas[i].tipo == TipoEntNGE::transformacion)
+         cauce->compMM(*(entradas[i].matriz)); //**
+   }
+
+   cauce->popMM();
+
+   if(leerIdentificador() != -1){
+      cauce->popColor();
+   }
 
 }
 
@@ -319,6 +353,25 @@ void NodoGrafoEscena::calcularCentroOC()
    //    en coordenadas de objeto (hay que hacerlo recursivamente)
    //   (si el centro ya ha sido calculado, no volver a hacerlo)
    // ........
+   if(centro_calculado)
+      return;
+
+      int num_hijos = 0;
+      glm::mat4 mmodelado(1.0f);
+      glm::vec3 centro_aux(0.0f, 0.0f, 0.0f);
+
+      for(unsigned int i = 0; i < entradas.size(); i++) {
+         if(entradas[i].tipo == TipoEntNGE::transformacion )
+            mmodelado = mmodelado * (*entradas[i].matriz);
+         if(entradas[i].tipo == TipoEntNGE::objeto ){
+            entradas[i].objeto->calcularCentroOC();
+            centro_aux+=  glm::vec3((mmodelado * glm::vec4(entradas[i].objeto->leerCentroOC(), 1.0f)));
+            num_hijos++;
+         }
+      }
+
+      ponerCentroOC(centro_aux/float(num_hijos));
+      centro_calculado = true;
 
 }
 // -----------------------------------------------------------------------------
@@ -342,16 +395,29 @@ bool NodoGrafoEscena::buscarObjeto
 
    // 1. calcula el centro del objeto, (solo la primera vez)
    // ........
-
+   calcularCentroOC();
 
    // 2. si el identificador del nodo es el que se busca, ya está (terminar)
    // ........
-
+   if(leerIdentificador() == ident_busc){
+      *objeto = this;
+      centro_wc = glm::vec3(mmodelado* glm::vec4(leerCentroOC(), 1.0f));   //***
+      return true;
+   }
 
    // 3. El nodo no es el buscado: buscar recursivamente en los hijos
    //    (si alguna llamada para un sub-árbol lo encuentra, terminar y devolver 'true')
    // ........
-
+   else {
+      glm::mat4 modelado_aux = mmodelado;
+      for(unsigned int i = 0; i < entradas.size(); i++) {
+         if(entradas[i].tipo == TipoEntNGE::transformacion )
+            modelado_aux = modelado_aux * (*entradas[i].matriz);
+         if(entradas[i].tipo == TipoEntNGE::objeto)
+            if(entradas[i].objeto->buscarObjeto(ident_busc, modelado_aux, objeto, centro_wc))
+               return true;
+      }
+   }
 
    // ni este nodo ni ningún hijo es el buscado: terminar
    return false ;
@@ -371,7 +437,7 @@ GrafoEstrellaX::GrafoEstrellaX(unsigned n){
    NodoGrafoEscena *estrellaPlana = new NodoGrafoEscena();
    estrellaPlana->agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 1, 0)));
    estrellaPlana->agregar(glm::scale(glm::vec3(1.3*2, 1.3*2, 1.3*2)));
-   estrellaPlana->agregar(glm::translate(glm::vec3(-0.5, -0.5 ,0)));
+   estrellaPlana->agregar(glm::translate(glm::vec3(-0.5, -0.5 ,0))); //Lo contrario al primer vértice del objeto
    estrellaPlana->agregar(estrellaZ);
 
    //Conos:
@@ -383,13 +449,13 @@ GrafoEstrellaX::GrafoEstrellaX(unsigned n){
    conos->agregar(glm::scale(glm::vec3(0.14, 0.15 , 0.14)));
    conos->agregar(cono_objeto);
 
-   unsigned ind1 = agregar(glm::rotate(glm::radians(0.0f), glm::vec3(1, 0, 0))); //Antes de cualquier agregar general 
+   unsigned ind1 = agregar(glm::rotate(glm::radians(0.0f), glm::vec3(1, 0, 0))); //Antes de cualquier agregar general -> Mover todo
 
    agregar(conos);   //Añade el primer cono
    unsigned rotacion = 360/n;
    for(int i=0; i<n-1; i++){
       agregar(glm::rotate(glm::radians(float(rotacion)), glm::vec3(1, 0, 0)));
-      agregar(conos);
+      agregar(conos); //Añadir el resto de conos
    }
 
    agregar(estrellaPlana);
@@ -403,7 +469,7 @@ void GrafoEstrellaX::actualizarEstadoParametro(const unsigned iParam, const floa
    switch (iParam)
    {
    case 0:
-      giro(parametro*sin(2*M_PI*2.5*t_sec));
+      giro(parametro*sin(2*M_PI*2.5*t_sec)); //Oscilante: n=2,5 (oscilaciones por segundo)
       break;
    default:
       break;
@@ -413,7 +479,7 @@ void GrafoEstrellaX::actualizarEstadoParametro(const unsigned iParam, const floa
 
 void GrafoEstrellaX::giro(const float grado){
 
-   *matriz_1 = glm::rotate(glm::radians(grado), glm::vec3(1, 0, 0));
+   *matriz_1 = glm::rotate(glm::radians(grado), glm::vec3(1, 0, 0)); //Rotar repecto al eje x
 
 }
 
@@ -430,7 +496,7 @@ GrafoCubos::GrafoCubos(){
    NodoGrafoEscena *nodo_rejillas = new NodoGrafoEscena();
    nodo_rejillas->agregar(glm::translate(glm::vec3(-0.5, -0.5, -0.5))); //Cara inferior
    nodo_rejillas->agregar(rejilla);
-   agregar(nodo_rejillas);
+   agregar(nodo_rejillas);    //Agregar nodo de la cara inferior
 
    Cubo *cubo = new Cubo(); //Objeto
 
@@ -440,7 +506,6 @@ GrafoCubos::GrafoCubos(){
    nodo_cubos->agregar(glm::scale(glm::vec3(0.2, 0.4 , 0.2)));
    nodo_cubos->agregar(cubo); //Cubo inferior
    agregar(nodo_cubos);
-
 
    for(int i=0; i<3; i++){
          agregar(glm::rotate(glm::radians(90.0f), glm::vec3(1, 0, 0)));
@@ -452,7 +517,7 @@ GrafoCubos::GrafoCubos(){
    agregar(glm::rotate(glm::radians(90.0f), glm::vec3(0, 0, 1)));
    agregar(nodo_rejillas);
    agregar(nodo_cubos);
-   agregar(glm::rotate(glm::radians(180.0f), glm::vec3(0, 0, 1)));
+   agregar(glm::rotate(glm::radians(180.0f), glm::vec3(0, 0, 1))); //Añade a la rotación que ya tienes, otra rotación sobre esa
    agregar(nodo_rejillas);
    agregar(nodo_cubos);
 
@@ -483,6 +548,135 @@ void GrafoCubos::giro(const float grado){
 
 unsigned GrafoCubos::leerNumParametros() const{
    return n_parametros;
+}
+
+//P4:
+
+NodoCubo24::NodoCubo24() {
+
+   ponerNombre( std::string("NodoCubo24") );
+
+   agregar(new Material(new Textura("window-icon.jpg"), 1.0, 1.0, 1.0, 1.0));
+   agregar(new Cubo24());
+}
+
+//Ejercicio adicional 1 P4:
+
+NodoDiscoP4::NodoDiscoP4(int ejerc){
+   
+   ponerNombre(std::string("Nodo ejercicio adicional práctica 4, examen 27 enero"));
+   agregar(new Material(new Textura("cuadricula.jpg"), 1.0, 1.0, 1.0, 1.0));
+   agregar( new MallaDiscoP4(ejerc) );
+
+}
+
+// Práctica 5:
+
+GrafoEsferasP5::GrafoEsferasP5(){
+   const unsigned
+      n_filas_esferas = 8,
+      n_esferas_x_fila = 5 ;
+   const float 
+      e = 0.4/n_esferas_x_fila ;
+
+      agregar( glm::scale(glm::vec3(e,e,e)));
+      for( unsigned i = 0 ; i < n_filas_esferas ; i++ ){
+         NodoGrafoEscena * fila_esferas = new NodoGrafoEscena() ;
+         
+         for( unsigned j = 0 ; j < n_esferas_x_fila ; j++ ){
+            MiEsferaE1 * esfera = new MiEsferaE1(i,j) ;
+            esfera->ponerIdentificador(j + (i*n_filas_esferas) + 1);
+            fila_esferas->agregar( glm::translate( glm::vec3( 2.2, 0.0, 0.0)));
+            fila_esferas->agregar( esfera );
+         }
+         
+         agregar( fila_esferas );
+         agregar( glm::translate( glm::vec3(0.0, 0.0, 5.0)));
+      }
+}
+
+MiEsferaE1::MiEsferaE1(unsigned n_fila, unsigned num_esfera){
+   
+   fila = n_fila +1;
+   n_esfera = num_esfera +1;
+   agregar(new Esfera(30, 50));
+   
+}
+
+bool MiEsferaE1::cuandoClick(const glm::vec3 &centro_wc){
+   
+   using namespace std ;
+   assert( aplicacionIG != nullptr );
+   
+   Escena * escena = aplicacionIG->escenas[aplicacionIG->ind_escena_act] ;
+   assert( escena != nullptr );
+
+   cout << "Ejecutando método 'cuandoClick' de MiEsfera1." << endl ;
+   cout <<  "Se ha seleccionado la esfera numero " << n_esfera << " de la fila numero " << fila  << endl ;
+
+   escena->camaraActual()->mirarHacia(centro_wc);
+
+   return true;
+}
+
+
+GrafoEsferasP5_2::GrafoEsferasP5_2(){
+
+   const unsigned
+      n_filas_esferas = 8,
+      n_esferas_x_fila = 5;
+      
+   const float e = 2.5/n_esferas_x_fila;
+
+      agregar( glm::scale(glm::vec3( e, e, e )));
+      for( unsigned i = 0 ; i < n_filas_esferas ; i++ )
+      {
+         NodoGrafoEscena * fila_esferas = new NodoGrafoEscena() ;
+         fila_esferas->agregar( glm::translate( glm::vec3( 3.0, 0.0, 0.0 )));
+         for( unsigned j = 0 ; j < n_esferas_x_fila ; j++ )
+         {
+            MiEsferaE2 * esfera = new MiEsferaE2() ;
+            esfera->ponerIdentificador(j + (i*n_filas_esferas) + 1);
+            fila_esferas->agregar( glm::translate( glm::vec3( 2.5, 0.0, 0.0 )));
+            fila_esferas->agregar( esfera );
+         }
+      agregar( fila_esferas );
+      agregar( glm::rotate(glm::radians(360.0f/n_filas_esferas), glm::vec3( 0.0, 1.0, 0.0 )));
+   }
+}
+
+MiEsferaE2::MiEsferaE2(){
+   
+   agregar(new Esfera(30,50));
+   
+}
+
+bool MiEsferaE2::cuandoClick(const glm::vec3 &centro_wc){
+
+   using namespace std;
+   assert( aplicacionIG != nullptr );
+   Escena * escena = aplicacionIG->escenas[aplicacionIG->ind_escena_act] ; 
+   assert( escena != nullptr );
+
+   cout << "Ejecutando método 'cuandoClick' de MiEsfera2." << endl ;
+
+   if(tieneColor()){
+      if(leerColor() == glm::vec3(1.0, 0.0, 0.0)){ //Si es rojo
+         cout << "Se ha quitado el color" << endl;
+         ponerColor(glm::vec3(1.0, 1.0, 1.0));
+      }
+      else {
+         cout << "Se ha puesto el color rojo" << endl;
+         ponerColor(glm::vec3(1.0, 0.0, 0.0));
+      }
+   }
+   else{
+      cout << "Se ha puesto el color rojo" << endl;
+      ponerColor(glm::vec3(1.0, 0.0, 0.0));
+   }
+   
+   return true ;
+
 }
 
 

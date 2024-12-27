@@ -109,6 +109,7 @@ bool Objeto3D::cuandoClick( const glm::vec3 & centro_wc )
    // y hacer que apunte al punto central de este objeto (parámetro 'centro_wc'), usando 
    // el método 'mirarHacia' de esa cámara.
    // ...
+   escena->camaraActual()->mirarHacia(centro_wc);
 
    return true ;
 }
@@ -160,7 +161,7 @@ bool Objeto3D::buscarObjeto
 
 unsigned Objeto3D::leerNumParametros() const
 {
-   return 0 ;
+   return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -173,7 +174,7 @@ void Objeto3D::modificarIndiceParametroActivo( const int d )
 {
    const int n = leerNumParametros() ;
 
-   using namespace std ;
+   using namespace std;
 
    if ( n == 0 )
    {  cout << "no es posible cambiar el parámetro activo, este objeto no tiene ningún parámetro definido." << endl ;

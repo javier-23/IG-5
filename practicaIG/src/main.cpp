@@ -44,6 +44,8 @@ int main( int argc, char *argv[] )
    using namespace std ;
    cout << "Prácticas de IG (GIM+GIADE) - curso 2024-25 (" << NOMBRE_OS << ")" << endl ;
 
+   
+
    // Crear el objeto 'apl' con las variables globales de la aplicación 
    // y los diversos parámetros de configuración
    aplicacionIG = new AplicacionIG(); 

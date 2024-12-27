@@ -73,6 +73,20 @@ void MallaInd::calcularNormalesTriangulos()
 
    // COMPLETAR: Práctica 4: creación de la tabla de normales de triángulos
    // ....
+   for(unsigned int i = 0; i < nt; ++i) {
+      glm::vec3 a = vertices[triangulos.at(i)[1]] - vertices[triangulos.at(i)[0]];
+      glm::vec3 b = vertices[triangulos.at(i)[2]] - vertices[triangulos.at(i)[0]];
+
+      glm::vec3 mc = glm::cross(a,b); 
+      glm::vec3 nc;
+      
+      if(glm::length(mc) != 0)
+         nc = glm::normalize(mc);
+      else
+         nc = {0.0f,0.0f,0.0f};
+
+      nor_tri.push_back(nc);
+   }
 
 }
 
@@ -86,7 +100,20 @@ void MallaInd::calcularNormales()
    // COMPLETAR: en la práctica 4: calculo de las normales de la malla
    // se debe invocar en primer lugar 'calcularNormalesTriangulos'
    // .......
+   calcularNormalesTriangulos();
 
+   for(unsigned int i = 0; i < vertices.size(); ++i)
+      nor_ver.push_back({0, 0, 0});
+
+   for(unsigned int i = 0; i < triangulos.size(); ++i) {
+      nor_ver[triangulos.at(i)[0]] = nor_ver[triangulos.at(i)[0]] + nor_tri[i];
+      nor_ver[triangulos.at(i)[1]] = nor_ver[triangulos.at(i)[1]] + nor_tri[i];
+      nor_ver[triangulos.at(i)[2]] = nor_ver[triangulos.at(i)[2]] + nor_tri[i];
+   }
+
+   for(unsigned int i = 0; i < nor_ver.size(); ++i)
+      if(glm::length(nor_ver[i]) != 0.0f)
+         nor_ver[i] = glm::normalize(nor_ver[i]);
 
 }
 
@@ -247,6 +274,17 @@ void MallaInd::visualizarNormalesGL(  )
    //       tipo de primitiva 'GL_LINES'.
 
    //  ..........
+   if(dvao_normales == nullptr){
+      for( unsigned i = 0 ; i < vertices.size() ; i++ )
+      {  
+         segmentos_normales.push_back( vertices[i] );
+         segmentos_normales.push_back( vertices[i]+ 0.35f*(nor_ver[i]) ); //a = 0.35
+      }
+      dvao_normales->crearVAO();
+      DescrVBOAtribs( ind_atrib_posiciones, segmentos_normales );   
+   }
+
+   dvao_normales->draw(GL_LINES);
 
 }
 
@@ -273,6 +311,16 @@ void MallaInd::visualizarModoSeleccionGL()
    // 2. Invocar 'visualizarGeomGL' para visualizar la geometría.
    // 3. Si tiene identificador: hacer pop del color, con 'popColor'.
    //
+   int id = leerIdentificador();
+   if(id != -1){
+      cauce->pushColor();
+      cauce->fijarColor(ColorDesdeIdent(id));
+   }
+   visualizarGeomGL();
+   
+   if(id != -1){
+      cauce->popColor();
+   }
 
 }
 
@@ -290,15 +338,14 @@ MallaPLY::MallaPLY( const std::string & nombre_arch )
 
    // COMPLETAR: práctica 4: invocar  a 'calcularNormales' para el cálculo de normales
    // .................
+   calcularNormales();
 
 }
 
 // ****************************************************************************
 // Clase 'Cubo
 
-Cubo::Cubo()
-:  MallaInd( "cubo 8 vértices" )
-{
+Cubo::Cubo():  MallaInd( "cubo 8 vértices" ){
 
    vertices =
       {  { -1.0, -1.0, -1.0 }, // 0
@@ -324,7 +371,88 @@ Cubo::Cubo()
          {1,5,7}, {1,7,3}  // Z+ (+1)
       } ;
 
+      calcularNormales();
+
 }
+
+//P4:
+
+Cubo24::Cubo24(){
+   vertices =
+      {  { -1.0, -1.0, -1.0 }, // 0.0 
+         { -1.0, -1.0, -1.0 }, // 0.1 
+         { -1.0, -1.0, -1.0 }, // 0.2
+         
+         { -1.0, -1.0, +1.0 }, // 1.3 
+         { -1.0, -1.0, +1.0 }, // 1.4 
+         { -1.0, -1.0, +1.0 }, // 1.5 
+         
+         { -1.0, +1.0, -1.0 }, // 2.6 
+         { -1.0, +1.0, -1.0 }, // 2.7
+         { -1.0, +1.0, -1.0 }, // 2.8
+         
+         { -1.0, +1.0, +1.0 }, // 3.9
+         { -1.0, +1.0, +1.0 }, // 3.10
+         { -1.0, +1.0, +1.0 }, // 3.11 
+         
+         { +1.0, -1.0, -1.0 }, // 4.12
+         { +1.0, -1.0, -1.0 }, // 4.13
+         { +1.0, -1.0, -1.0 }, // 4.14
+         
+         { +1.0, -1.0, +1.0 }, // 5.15
+         { +1.0, -1.0, +1.0 }, // 5.16
+         { +1.0, -1.0, +1.0 }, // 5.17
+         
+         { +1.0, +1.0, -1.0 }, // 6.18
+         { +1.0, +1.0, -1.0 }, // 6.19
+         { +1.0, +1.0, -1.0 }, // 6.20
+         
+         { +1.0, +1.0, +1.0 }, // 7.21
+         { +1.0, +1.0, +1.0 }, // 7.22
+         { +1.0, +1.0, +1.0 }, // 7.23
+      } ;
+
+   triangulos =
+      {  {9,0,3}, {0,9,6}, // X- //
+         {10,4,15}, {15,21,10}, // X+ (+4)
+
+         {22,16,18}, {16,12,18}, // Y-
+         {13,1,19}, {1,7,19}, // Y+ (+2)
+
+         {8,11,20}, {11,23,20}, // Z-
+         {17,5,2}, {17,2,14}  // Z+ (+1)
+      };
+
+   cc_tt_ver = //tabla de coordenadas de textura
+      {  {0.0, 1.0},     // 1    (horizontal, vértical)
+         {1.0, 1.0},     // 4 
+         {1.0, 0.0},     // 6 
+         {1.0, 1.0},     // 1 
+         {0.0, 1.0},     // 2
+         {1.0, 1.0},     // 6
+         {0.0, 0.0},     // 1 
+         {1.0, 0.0},     // 4
+         {1.0, 0.0},     // 5  
+         {1.0, 0.0},     // 1
+         {0.0, 0.0},     // 2 
+         {0.0, 0.0},     // 5
+         {1.0, 1.0},     // 3
+         {0.0, 1.0},     // 4   
+         {0.0, 0.0},     // 6
+         {1.0, 1.0},     // 2  
+         {0.0, 1.0},     // 3
+         {0.0, 1.0},     // 6
+         {1.0, 0.0},     // 3 
+         {0.0, 0.0},     // 4 
+         {1.0, 1.0},     // 5
+         {1.0, 0.0},     // 2 
+         {0.0, 0.0},     // 3 
+         {0.0, 1.0},     // 5  
+      };
+
+   calcularNormales();
+}
+
 
 //P1:
 
@@ -360,7 +488,7 @@ CuboColores::CuboColores(): MallaInd( "Cubo con colores" ){
          { +1.0, -1.0, +1.0 }, // 5
          { +1.0, +1.0, -1.0 }, // 6
          { +1.0, +1.0, +1.0 } // 7
-      } ;
+      };
 
    triangulos =
       {  {0,1,3}, {0,3,2}, // X-
@@ -599,5 +727,40 @@ MallaTorre::MallaTorre(unsigned n): MallaInd( " Malla Torre " ){
 
 }
 
+//Ejercicios adicionales P4:
+
+MallaDiscoP4::MallaDiscoP4(int ejerc){
+   
+   ponerColor({1.0, 1.0, 1.0});
+   const unsigned ni = 23, nj = 31 ;
+
+   for( unsigned i= 0 ; i < ni ; i++ )
+      for( unsigned j= 0 ; j < nj ; j++ ){
+         const float
+            fi = float(i)/float(ni-1),
+            fj = float(j)/float(nj-1),
+            ai = 2.0*M_PI*fi,
+            x = fj * cos( ai ),
+            y = fj * sin( ai ),
+            z = 0.0 ;
+         vertices.push_back({ x, y, z });
+
+         //Ejercicios separados:
+         if(ejerc == 1)                     
+            cc_tt_ver.push_back({float(x/2.0 + 0.5), float(y/2.0 + 0.5)}); //La primera es: 1,0.5
+         if(ejerc == 2)
+            cc_tt_ver.push_back({fi, fj});
+
+       }
+   
+   for( unsigned i= 0 ; i < ni-1 ; i++ )
+      for( unsigned j= 0 ; j < nj-1 ; j++ ){
+         triangulos.push_back({ i*nj+j, i*nj+(j+1), (i+1)*nj+(j+1) });
+         triangulos.push_back({ i*nj+j, (i+1)*nj+(j+1), (i+1)*nj+j });
+      }
+
+}
+
 // -----------------------------------------------------------------------------------------------
+
 
